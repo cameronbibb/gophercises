@@ -31,10 +31,13 @@ func main() {
 	duration := 5
 
 	//implement start timer and quiz by pressing return
+	fmt.Println("Press Return to begin quiz.")
+	var dummy string
+	fmt.Scanln(&dummy)
 
 	fmt.Println("Starting timer")
 	time.AfterFunc(time.Duration(duration)*time.Second, func() {
-		fmt.Printf("Time is up. You scored %d out of %d.\n", correct, len(problems))
+		fmt.Printf("\nTime is up. You scored %d out of %d.\n", correct, len(problems))
 		os.Exit(0)
 	})
 
@@ -46,7 +49,7 @@ func main() {
 			correct++
 		}
 	}
-	fmt.Printf("Quiz completed. You scored %d out of %d.\n", correct, len(problems))
+	fmt.Printf("\nQuiz completed. You scored %d out of %d.\n", correct, len(problems))
 }
 
 func parseLines(lines [][]string) []problem {

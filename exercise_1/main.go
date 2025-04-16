@@ -15,8 +15,8 @@ func main() {
 	randGen := rand.New(source)
 
 	csvFilename := flag.String("csv", "problems.csv", "a csv file in the format of 'question, answer'")
-	duration := flag.Int("d", 30, "allows a custom duration")
-	shuffle := flag.Bool("s", false, "allows random shuffling of problems")
+	limit := flag.Int("limit", 30, "allows a custom duration")
+	shuffle := flag.Bool("shuffle", false, "allows random shuffling of problems")
 	flag.Parse()
 
 	file, err := os.Open(*csvFilename)
@@ -44,17 +44,34 @@ func main() {
 	fmt.Scanln(&dummy)
 
 	fmt.Println("Begin!")
-	time.AfterFunc(time.Duration(*duration)*time.Second, func() {
-		fmt.Printf("\nTime is up. You scored %d out of %d.\n", correct, len(problems))
-		os.Exit(0)
-	})
+
+	timer := time.NewTimer(time.Duration(*limit) * time.Second)
+
+	// time.AfterFunc(time.Duration(*limit)*time.Second, func() {
+	// 	fmt.Printf("\nTime is up. You scored %d out of %d.\n", correct, len(problems))
+	// 	os.Exit(0)
+	// })
+
+	//create a go routine to listen for answers
+	//create a go routine to return upon timer running out
 
 	for i, p := range problems {
 		fmt.Printf("Problem #%d: %s = \n", i+1, p.q)
-		var answer string
-		fmt.Scanf("%s\n", &answer)
-		if answer == p.a {
-			correct++
+		answerCh := make(chan string)
+		go func() {
+			var answer string
+			fmt.Scanf("%s\n", &answer)
+			answerCh <- answer
+		}()
+
+		select {
+		case <-timer.C:
+			fmt.Printf("\nTime is up. You scored %d out of %d.\n", correct, len(problems))
+			return
+		case answer := <-answerCh:
+			if answer == p.a {
+				correct++
+			}
 		}
 	}
 	fmt.Printf("\nQuiz completed. You scored %d out of %d.\n", correct, len(problems))
